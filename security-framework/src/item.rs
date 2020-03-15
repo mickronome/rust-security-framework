@@ -70,6 +70,7 @@ pub struct ItemSearchOptions {
     load_attributes: bool,
     load_data: bool,
     limit: Option<i64>,
+    all: Option<bool>,
     label: Option<CFString>,
 }
 
@@ -131,6 +132,14 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Return all matching results.
+    ///
+    pub fn all(&mut self) -> &mut Self {
+        self.all = Some(true);
+        self
+    }
+
+
     /// Search for an item with the given label.
     pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
@@ -172,6 +181,15 @@ impl ItemSearchOptions {
                     CFString::wrap_under_get_rule(kSecReturnData),
                     CFBoolean::true_value().as_CFType(),
                 ));
+            }
+
+            if let Some(all) = self.all {
+                if all {
+                    params.push((
+                        CFString::wrap_under_get_rule(kSecMatchLimit),
+                        CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType(),
+                    ));
+                }
             }
 
             if let Some(limit) = self.limit {
